@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burguer Express - Pedidos Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff6b35',
+                        secondary: '#f7931e',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+        .modal-content {
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-open .modal-content {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- Hero Section -->
+    <div class="h-80 bg-cover bg-center relative" style="background-image: url('https://i.imgur.com/RaRonvM.png');">
+        <div class="absolute top-5 right-5 flex gap-4 bg-white/90 px-4 py-3 rounded-full shadow-lg z-20">
+            <button onclick="openShareModal()" class="text-gray-700 hover:text-primary transition p-2 rounded-full hover:bg-primary/10">
+                <i data-feather="share-2"></i>
+            </button>
+            <button onclick="openLocationModal()" class="text-gray-700 hover:text-primary transition p-2 rounded-full hover:bg-primary/10">
+                <i data-feather="map-pin"></i>
+            </button>
+            <button onclick="openHoursModal()" class="text-gray-700 hover:text-primary transition p-2 rounded-full hover:bg-primary/10">
+                <i data-feather="clock"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Logo and Header -->
+    <div class="flex justify-center -mt-16 relative z-10">
+        <img src="https://i.imgur.com/3JK1fJK.png" alt="Burguer Express" class="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover">
+    </div>
+    <div class="text-center mt-4 mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">BURGUER EXPRESS</h1>
+        <p class="text-gray-600">Comida rápida de calidad</p>
+    </div>
+    
+    <!-- Menu Section -->
+    <div class="max-w-6xl mx-auto px-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="menu">
+            <!-- Menu items will be generated here -->
+        </div>
+    </div>
+    
+    <!-- Order Form -->
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Realiza tu pedido</h2>
+        
+        <!-- Order Summary -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-6 border-l-4 border-primary" id="order-summary">
+            <p class="text-gray-600">Tu pedido aparecerá aquí. Agrega productos del menú.</p>
+        </div>
+        
+        <!-- Order Form -->
+        <form id="order-form">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
+                    <input type="text" id="customer-name" name="name" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
+                    <input type="tel" id="customer-phone" name="phone" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Dirección de entrega *</label>
+                    <textarea id="customer-address" name="address" rows="3" required 
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Instrucciones especiales</label>
+                    <textarea id="customernotes" name="customernotes" rows="2" 
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                </div>
+                
+                <input type="hidden" name="order-details" id="order-details">
+                <input type="hidden" name="local_time" id="local-time">
+                
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-primary to-secondary text-white py-4 px-6 rounded-lg font-bold text-lg hover:opacity-90 transition-opacity">
+                    Realizar Pedido
+                </button>
+            </div>
+        </form>
+        
+        <!-- Notification -->
+        <div class="hidden mt-4 p-4 rounded-lg text-center" id="notification"></div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Hours Modal -->
+    <div id="hoursModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Horario de Atención</h3>
+                <button onclick="closeModal('hoursModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Lunes a Viernes:</span>
+                    <span class="font-medium">11:00 AM - 10:00 PM</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Sábados:</span>
+                    <span class="font-medium">11:00 AM - 11:00 PM</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Domingos:</span>
+                    <span class="font-medium">12:00 PM - 9:00 PM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Modal -->
+    <div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Ubicación</h3>
+                <button onclick="closeModal('locationModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <p class="mb-4">Av. Principal 1234, Local 5<br>Ciudad de Caracas, Venezuela</p>
+            <a href="https://maps.google.com" target="_blank" class="bg-primary text-white py-2 px-4 rounded-lg flex items-center justify-center hover:bg-red-700 transition">
+                <i data-feather="map" class="mr-2"></i> Abrir en Maps
+            </a>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Compartir</h3>
+                <button onclick="closeModal('shareModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button onclick="shareOnFacebook()" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition">
+                    <i data-feather="facebook"></i>
+                </button>
+                <button onclick="shareOnTwitter()" class="bg-blue-400 text-white p-3 rounded-full hover:bg-blue-500 transition">
+                    <i data-feather="twitter"></i>
+                </button>
+                <button onclick="shareOnInstagram()" class="bg-red-500 text-white p-3 rounded-full hover:bg-red-600 transition">
+                    <i data-feather="instagram"></i>
+                </button>
+                <button onclick="shareOnWhatsApp()" class="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 transition">
+                    <i data-feather="whatsapp"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <p class="text-sm text-gray-600 mb-2">O copia el enlace:</p>
+                <div class="flex">
+                    <input type="text" value="https://burgerexpress.com/menu" class="border rounded-l-lg px-3 py-2 w-full" readonly>
+                    <button onclick="copyLink()" class="bg-gray-200 px-3 rounded-r-lg hover:bg-gray-300">
+                        <i data-feather="copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar Feather Icons
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            generateMenu();
+        });
+
+        // Datos del menú
+        const menuItems = [
+            { id: 1, name: "Hamburguesa Clásica", price: 8.99, image: "https://i.imgur.com/MhO5aDQ.png" },
+            { id: 2, name: "Pizza Pepperoni", price: 12.99, image: "https://i.imgur.com/IIIVeqE.jpg" },
+            { id: 3, name: "Ensalada César", price: 7.99, image: "https://i.imgur.com/x86kz4m.jpg" },
+            { id: 4, name: "Papas Fritas", price: 3.99, image: "https://i.imgur.com/KpavD76.jpg" },
+            { id: 5, name: "Refresco", price: 1.99, image: "https://i.imgur.com/A7Q5lZq.jpg" },
+            { id: 6, name: "Helado", price: 4.99, image: "https://i.imgur.com/aQjT8nN.jpg" }
+        ];
+
+        let cart = [];
+
+        // Generar menú
+        function generateMenu() {
+            const menuContainer = document.getElementById('menu');
+            menuContainer.innerHTML = '';
+            
+            menuItems.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item bg-white rounded-xl overflow-hidden shadow-md transition-transform duration-300';
+                menuItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" 
+                         class="w-full h-40 object-cover border-b border-gray-100"
+                         onerror="this.src='https://via.placeholder.com/300x160/ff6b35/ffffff?text=${encodeURIComponent(item.name)}'">
+                    <div class="p-4">
+                        <div class="font-bold text-lg mb-1">${item.name}</div>
+                        <div class="text-primary font-bold text-xl mb-3">$${item.price.toFixed(2)}</div>
+                        <button type="button" onclick="addToCart(${item.id})" 
+                                class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-colors">
+                            Agregar al Pedido
+                        </button>
+                    </div>
+                `;
+                menuContainer.appendChild(menuItem);
+            });
+        }
+
+        // Funciones de modal
+        function openHoursModal() {
+            document.getElementById('hoursModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('hoursModal').classList.add('modal-open');
+                feather.replace();
+            }, 10);
+        }
+        
+        function openLocationModal() {
+            document.getElementById('locationModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('locationModal').classList.add('modal-open');
+                feather.replace();
+            }, 10);
+        }
+        
+        function openShareModal() {
+            document.getElementById('shareModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('shareModal').classList.add('modal-open');
+                feather.replace();
+            }, 10);
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('modal-open');
+            setTimeout(() => {
+                document.getElementById(id).classList.add('hidden');
+            }, 300);
+        }
+        
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => alert('Enlace copiado al portapapeles'))
+                .catch(() => {
+                    // Fallback para navegadores antiguos
+                    const link = document.createElement('input');
+                    link.value = window.location.href;
+                    document.body.appendChild(link);
+                    link.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(link);
+                    alert('Enlace copiado al portapapeles');
+                });
+        }
+
+        // Funciones de compartir
+        function shareOnFacebook() {
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        }
+
+        function shareOnTwitter() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('¡Mira el menú de Burguer Express!');
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        }
+
+        function shareOnInstagram() {
+            alert('Comparte la captura de pantalla en Instagram');
+        }
+
+        function shareOnWhatsApp() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('¡Mira el menú de Burguer Express!');
+            window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+        }
+        
+        // Funciones del carrito
+        function addToCart(itemId) {
+            const item = menuItems.find(i => i.id === itemId);
+            const existingItem = cart.find(i => i.id === itemId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...item, quantity: 1 });
+            }
+            
+            updateOrderSummary();
+            showNotification(`✅ ${item.name} agregado al carrito`, 'success');
+        }
+
+        function removeFromCart(itemId) {
+            const item = cart.find(i => i.id === itemId);
+            cart = cart.filter(item => item.id !== itemId);
+            updateOrderSummary();
+            showNotification(`🗑️ ${item.name} eliminado del carrito`, 'success');
+        }
+
+        function updateOrderSummary() {
+            const orderSummary = document.getElementById('order-summary');
+            const orderDetails = document.getElementById('order-details');
+            
+            if (cart.length === 0) {
+                orderSummary.innerHTML = '<p class="text-gray-600">Tu pedido aparecerá aquí. Agrega productos del menú.</p>';
+                orderDetails.value = '';
+                return;
+            }
+            
+            let html = '<h3 class="font-bold text-lg mb-3">🛒 Resumen de tu pedido</h3>';
+            let total = 0;
+            let detailsText = '';
+            
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                        <div>
+                            <strong>${item.name}</strong> x ${item.quantity}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            $${itemTotal.toFixed(2)}
+                            <button type="button" onclick="removeFromCart(${item.id})" 
+                                    class="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                detailsText += `${item.name} x ${item.quantity} - $${itemTotal.toFixed(2)}\n`;
+            });
+            
+            html += `<div class="font-bold text-xl text-right text-primary mt-3">💰 Total: $${total.toFixed(2)}</div>`;
+            orderSummary.innerHTML = html;
+            orderDetails.value = `PEDIDO:\n${detailsText}\nTOTAL: $${total.toFixed(2)}`;
+        }
+		
+        // Obtener hora local de Venezuela
+        function getVenezuelaTime() {
+            return new Date().toLocaleString("es-VE", {
+                timeZone: "America/Caracas",
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('order-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (cart.length === 0) {
+                showNotification('❌ Por favor agrega al menos un producto a tu pedido', 'error');
+                return;
+            }
+            
+            const name = document.getElementById('customer-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('customer-address').value;
+            
+            if (!name || !phone || !address) {
+                showNotification('❌ Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+            const customernotes = document.getElementById('customernotes').value;
+			
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Enviando pedido...';
+            submitBtn.disabled = true;
+            
+            try {
+                const venezuelaTime = getVenezuelaTime();
+                const formData = {
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    customernotes: customernotes,
+                    'order-details': document.getElementById('order-details').value,
+                    local_time: venezuelaTime,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const PIPEDREAM_URL = 'https://eojz7iq7lx443x9.m.pipedream.net';
+                
+                const response = await fetch(PIPEDREAM_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    showNotification('✅ ¡Pedido realizado con éxito! Te contactaremos pronto.', 'success');
+                    cart = [];
+                    updateOrderSummary();
+                    this.reset();
+                } else {
+                    throw new Error('Error en el servidor');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('❌ Error al enviar el pedido. Por favor intenta nuevamente.', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `mt-4 p-4 rounded-lg text-center ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'
+            }`;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
